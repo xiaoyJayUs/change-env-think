@@ -1,0 +1,24 @@
+{
+    "name": "xiaoyjayus/change-env-think",
+    "autoload": {
+        "psr-4": {
+            "XiaoyJayUs\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "xiaoyJayUs",
+            "email": "xiaoy.jay.us@gmail.com"
+        }
+    ],
+    "require": {
+		"php": ">=7.2"
+	},
+    "extra": {
+        "think": {
+            "services": [
+                "XiaoyJayUs\\Service"
+            ]
+        }
+    }
+}
