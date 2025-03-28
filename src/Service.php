@@ -2,11 +2,12 @@
 
 namespace XiaoyJayUs;
 
+use XiaoyJayUs\console\ChangeEnv;
 
-class Service 
+class Service extends \think\Service
 {
-    public function index()
+    public function boot()
     {
-        echo 1;
+        $this->commands([ChangeEnv::class]);
     }
 }
