@@ -3,51 +3,30 @@
 namespace XiaoyJayUs\console;
 
 
-use think\console\Command;
-use think\console\input\Argument;
+use think\Console\Command;
+use think\Console\input\Argument;
+use XiaoyJayUs\Config;
 
 class ChangeEnv extends Command
 {
-    /**
-     * @var string $description
-     */
+    /** @var string $description */
     protected $description = '开发环境切换';
 
-    protected $config = [
-        'mysql' => [
-            'local' => [
-                'DB_HOST'     => '127.0.0.1',
-                'DB_DATABASE' => 'crm_sys',
-                'DB_USERNAME' => 'root',
-                'DB_PASSWORD' => '123456',
-                'DB_PORT'     => '58018',
-            ],
-        ],
-        'redis' => [
-            'local' => [
-                'REDIS_HOST'     => '127.0.0.1',
-                'REDIS_PASSWORD' => '',
-                'REDIS_PORT'     => '6379',
-            ],
-            'dev'   => [
-                'REDIS_HOST'     => '47.112.163.160',
-                'REDIS_PASSWORD' => 'CdMd*20251048',
-                'REDIS_PORT'     => '6379',
-            ],
-        ],
-    ];
+    /** @var array $config */
+    protected $config = [];
 
     protected function configure()
     {
         $this->setName("change:env")
-             ->addArgument('mysql', Argument::OPTIONAL, 'local/dev/prod', 'local')
-             ->addArgument('redis', Argument::OPTIONAL, 'local/dev/prod', 'local');
+            ->addArgument('mysql', Argument::OPTIONAL, 'local/dev/prod', 'local')
+            ->addArgument('redis', Argument::OPTIONAL, 'local/dev/prod', 'local');
     }
 
     public function handle(): bool
     {
-        $mysql = $this->input->getArgument('mysql');
-        $redis = $this->input->getArgument('redis');
+        $this->config = Config::get();
+        $mysql        = $this->input->getArgument('mysql');
+        $redis        = $this->input->getArgument('redis');
 
         if (empty($this->config['mysql'][$mysql])) {
             $this->output->error('mysql配置不存在');
@@ -58,8 +37,9 @@ class ChangeEnv extends Command
         }
         $mysqlConfig = $this->config['mysql'][$mysql];
         $redisConfig = $this->config['redis'][$redis];
-        $file        = base_path() . '/.env';
+        $file        = $this->app->getRootPath() . '.env';
         $content     = file_get_contents($file);
+        $content     = preg_replace("/\r/", PHP_EOL, $content);
 
         # 替换 mysql 配置
         foreach ($mysqlConfig as $key => $value) {

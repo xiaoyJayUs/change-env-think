@@ -2,7 +2,7 @@
 
 namespace XiaoyJayUs;
 
-use XiaoyJayUs\console\ChangeEnv;
+use XiaoyJayUs\Console\ChangeEnv;
 
 class Service extends \think\Service
 {
