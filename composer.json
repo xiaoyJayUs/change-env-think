@@ -17,6 +17,9 @@
 	},
     "extra": {
         "think": {
+            "config":{
+                "trace": "src/config.php"
+            },
             "services": [
                 "XiaoyJayUs\\Service"
             ]
