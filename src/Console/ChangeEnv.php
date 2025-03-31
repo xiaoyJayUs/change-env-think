@@ -9,8 +9,6 @@ use XiaoyJayUs\Config;
 
 class ChangeEnv extends Command
 {
-    /** @var string $description */
-    protected $description = '开发环境切换';
 
     /** @var array $config */
     protected $config = [];
@@ -20,7 +18,16 @@ class ChangeEnv extends Command
         $this->setName("change:env")
             ->addArgument('mysql', Argument::OPTIONAL, 'local/dev/prod', 'local')
             ->addArgument('mongo', Argument::OPTIONAL, 'local/dev/prod', 'local')
-            ->addArgument('redis', Argument::OPTIONAL, 'local/dev/prod', 'local');
+            ->addArgument('redis', Argument::OPTIONAL, 'local/dev/prod', 'local')
+            ->setDescription('开发环境切换');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function setArguments(): array
+    {
+
     }
 
     public function handle(): bool
@@ -68,7 +75,7 @@ class ChangeEnv extends Command
         #替换源文件
         file_put_contents($file, $content);
 
-        $this->output->info("mysql:{$mysql}\nredis:{$redis}");
+        $this->output->info("mysql:{$mysql}\nmongo:{$mongo}\nredis:{$redis}");
         return true;
     }
 }
