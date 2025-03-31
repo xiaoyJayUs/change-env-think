@@ -19,6 +19,7 @@ class ChangeEnv extends Command
     {
         $this->setName("change:env")
             ->addArgument('mysql', Argument::OPTIONAL, 'local/dev/prod', 'local')
+            ->addArgument('mongo', Argument::OPTIONAL, 'local/dev/prod', 'local')
             ->addArgument('redis', Argument::OPTIONAL, 'local/dev/prod', 'local');
     }
 
@@ -26,6 +27,7 @@ class ChangeEnv extends Command
     {
         $this->config = Config::get();
         $mysql        = $this->input->getArgument('mysql');
+        $mongo        = $this->input->getArgument('mongo');
         $redis        = $this->input->getArgument('redis');
 
         if (empty($this->config['mysql'][$mysql])) {
@@ -37,12 +39,20 @@ class ChangeEnv extends Command
         }
         $mysqlConfig = $this->config['mysql'][$mysql];
         $redisConfig = $this->config['redis'][$redis];
+        $mongoConfig = $this->config['mongo'][$mongo];
         $file        = $this->app->getRootPath() . '.env';
         $content     = file_get_contents($file);
         $content     = preg_replace("/\r/", PHP_EOL, $content);
 
         # 替换 mysql 配置
         foreach ($mysqlConfig as $key => $value) {
+            $pattern     = '/^' . preg_quote($key, '/') . '=.*$/m';
+            $replacement = $key . '=' . $value;
+            $content     = preg_replace($pattern, $replacement, $content);
+        }
+
+        # 替换 mongo 配置
+        foreach ($mongoConfig as $key => $value) {
             $pattern     = '/^' . preg_quote($key, '/') . '=.*$/m';
             $replacement = $key . '=' . $value;
             $content     = preg_replace($pattern, $replacement, $content);
