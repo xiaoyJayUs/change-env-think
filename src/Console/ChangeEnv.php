@@ -4,7 +4,11 @@ namespace XiaoyJayUs\console;
 
 
 use think\Console\Command;
-use think\Console\input\Option;
+use think\Console\input\Option as InputOption;
+use think\Console\input\Argument as InputArgument;
+use think\console\output\Ask;
+use think\console\output\Question;
+use think\console\output\question\Choice as ChoiceQuestion;
 
 class ChangeEnv extends Command
 {
@@ -12,29 +16,46 @@ class ChangeEnv extends Command
     /** @var array $config */
     protected $config = [];
 
+    /**
+     * {@inheritdoc}
+     */
     protected function configure()
     {
-        $configNmaes = array_keys(config('change_env'));
+        $configNames = array_keys($this->config());
         $this->setName("change:env")
-            ->setDescription('开发环境切换');
-        foreach ($configNmaes as $name) {
-            $this->addOption($name, null, Option::VALUE_OPTIONAL, 'local/dev/prod', 'local');
+            ->setDescription('开发环境切换')
+            ->addArgument('env_all', InputArgument::OPTIONAL, "local/dev/prod")
+            ->addOption('quick', 'a', InputOption::VALUE_OPTIONAL, '快速模式');
+        foreach ($configNames as $name) {
+            $this->addOption($name, null, InputOption::VALUE_OPTIONAL, 'local/dev/prod', 'local');
         }
     }
 
     public function handle(): bool
     {
-        $this->config = $this->app->config->get('change_env');
-        $configNmaes  = array_keys($this->config);
+        $this->config = $this->config();
+        $configNames  = array_keys($this->config);
+        $argument     = $this->input->getArgument('env_all');
         $options      = $this->input->getOptions();
-        $file         = $this->app->getRootPath() . '.env';
-        $content      = file_get_contents($file);
-        $content      = preg_replace("/\r/", PHP_EOL, $content);
-        $msg          = [];
-        foreach ($configNmaes as $name) {
-            $inputEnv  = $options[$name];
+        # 快速模式
+        if ($this->input->hasParameterOption(['--quick', '-a'])) {
+            $askConfigNames = $this->askQuestion((new ChoiceQuestion('需要替换的【配置】', $configNames))->setMultiselect(true));
+            $askEnv         = $this->askQuestion((new ChoiceQuestion('需要替换的【环境】', ['local', 'dev', 'prod'])));
+            foreach ($askConfigNames as $name) {
+                $options[$name] = $askEnv;
+            }
+        }
+        # 获取配置文件
+        $file    = $this->basePath() . '.env';
+        $content = file_get_contents($file);
+        $content = preg_replace("/\r/", PHP_EOL, $content);
+
+        # 替换配置
+        $msg = [];
+        foreach ($configNames as $name) {
+            $inputEnv  = $argument ?: $options[$name];
             $nowConfig = $this->config[$name][$inputEnv];
-            # 替换配置
+            # 替换某个配置
             foreach ($nowConfig as $key => $value) {
                 $pattern     = '/^' . preg_quote($key, '/') . '=.*$/m';
                 $replacement = $key . '=' . $value;
@@ -46,7 +67,52 @@ class ChangeEnv extends Command
         #替换源文件
         file_put_contents($file, $content);
 
-        $this->output->info(implode(PHP_EOL, $msg));
+        $this->info(implode(PHP_EOL, $msg));
         return true;
+    }
+
+    /**
+     * 获取基础路径
+     * @return string
+     */
+    public function basePath(): string
+    {
+        return $this->app->getRootPath();
+    }
+
+    /**
+     * 获取配置
+     * @return array
+     */
+    public function config(): array
+    {
+        return config('change_env');
+    }
+
+    /**
+     * 输出提问
+     * @param Question $question
+     * @return mixed
+     */
+    public function askQuestion(Question $question)
+    {
+        $ask    = new Ask($this->input, $this->output, $question);
+        $answer = $ask->run();
+
+        if ($this->input->isInteractive()) {
+            $this->output->newLine();
+        }
+
+        return $answer;
+    }
+
+    /**
+     * 输出信息
+     * @param Question $question
+     * @return mixed
+     */
+    public function info($msg)
+    {
+        $this->output->info($msg);
     }
 }
