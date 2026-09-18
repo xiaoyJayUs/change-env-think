@@ -22,10 +22,10 @@ class ChangeEnv extends Command
     protected function configure()
     {
         $configNames = array_keys($this->config());
-        $this->setName("change:env")
+        $this->setName("xy:change-env")
             ->setDescription('开发环境切换')
             ->addArgument('env_all', InputArgument::OPTIONAL, "local/dev/prod")
-            ->addOption('quick', 'a', InputOption::VALUE_OPTIONAL, '快速模式');
+            ->addOption('quick', 'Q', InputOption::VALUE_NONE, '快捷模式');
         foreach ($configNames as $name) {
             $this->addOption($name, null, InputOption::VALUE_OPTIONAL, 'local/dev/prod', 'local');
         }
@@ -38,7 +38,7 @@ class ChangeEnv extends Command
         $argument     = $this->input->getArgument('env_all');
         $options      = $this->input->getOptions();
         # 快速模式
-        if ($this->input->hasParameterOption(['--quick', '-a'])) {
+        if ($options['quick']) {
             $askConfigNames = $this->askQuestion((new ChoiceQuestion('需要替换的【配置】', $configNames))->setMultiselect(true));
             $askEnv         = $this->askQuestion((new ChoiceQuestion('需要替换的【环境】', ['local', 'dev', 'prod'])));
             foreach ($askConfigNames as $name) {
