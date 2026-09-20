@@ -2,7 +2,7 @@
     "name": "xiaoyjayus/change-env-think",
     "autoload": {
         "psr-4": {
-            "XiaoyJayUs\\": "src/"
+            "XiaoyJayUs\\ChangeEnv\\Think\\": "src/"
         }
     },
     "license": "Apache-2.0",
@@ -21,7 +21,7 @@
                 "change-env": "src/config.php"
             },
             "services": [
-                "XiaoyJayUs\\Service"
+                "XiaoyJayUs\\ChangeEnv\\Think\\Service"
             ]
         }
     }

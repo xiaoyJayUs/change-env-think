@@ -1,8 +1,8 @@
 <?php
 
-namespace XiaoyJayUs;
+namespace XiaoyJayUs\ChangeEnv\Think;
 
-use XiaoyJayUs\Console\ChangeEnv;
+use XiaoyJayUs\ChangeEnv\Think\Console\ChangeEnv;
 
 class Service extends \think\Service
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace XiaoyJayUs\console;
+namespace XiaoyJayUs\ChangeEnv\Think\Console;
 
 
 use think\Console\Command;
