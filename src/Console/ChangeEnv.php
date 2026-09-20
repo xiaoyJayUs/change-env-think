@@ -24,7 +24,7 @@ class ChangeEnv extends Command
         $configNames = array_keys($this->config());
         $this->setName("xy:change-env")
             ->setDescription('开发环境切换')
-            ->addArgument('env_all', InputArgument::OPTIONAL, "local/dev/prod")
+            ->addArgument('env-all', InputArgument::OPTIONAL, '替换所有配置环境')
             ->addOption('quick', 'Q', InputOption::VALUE_NONE, '快捷模式');
         foreach ($configNames as $name) {
             $this->addOption($name, null, InputOption::VALUE_OPTIONAL, 'local/dev/prod', 'local');
@@ -35,7 +35,7 @@ class ChangeEnv extends Command
     {
         $this->config = $this->config();
         $configNames  = array_keys($this->config);
-        $argument     = $this->input->getArgument('env_all');
+        $argument     = $this->input->getArgument('env-all');
         $options      = $this->input->getOptions();
         # 快速模式
         if ($options['quick']) {
@@ -46,7 +46,7 @@ class ChangeEnv extends Command
             }
         }
         # 获取配置文件
-        $file    = $this->basePath() . '.env';
+        $file    = $this->app->getRootPath() . '.env';
         $content = file_get_contents($file);
         $content = preg_replace("/\r/", PHP_EOL, $content);
 
@@ -72,21 +72,12 @@ class ChangeEnv extends Command
     }
 
     /**
-     * 获取基础路径
-     * @return string
-     */
-    public function basePath(): string
-    {
-        return $this->app->getRootPath();
-    }
-
-    /**
      * 获取配置
      * @return array
      */
     public function config(): array
     {
-        return config('change_env');
+        return config('change-env');
     }
 
     /**

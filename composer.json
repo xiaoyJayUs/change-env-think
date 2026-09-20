@@ -18,7 +18,7 @@
     "extra": {
         "think": {
             "config":{
-                "change_env": "src/config.php"
+                "change-env": "src/config.php"
             },
             "services": [
                 "XiaoyJayUs\\Service"
