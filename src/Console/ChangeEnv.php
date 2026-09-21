@@ -77,7 +77,7 @@ class ChangeEnv extends Command
      */
     public function config(): array
     {
-        return config('change-env');
+        return config('change-env') ?: [];
     }
 
     /**
