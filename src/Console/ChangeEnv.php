@@ -8,6 +8,8 @@ use think\Console\input\Option as InputOption;
 use think\Console\input\Argument as InputArgument;
 use think\console\output\Ask;
 use think\console\output\Question;
+use think\console\Table;
+use think\contract\Arrayable;
 use think\console\output\question\Choice as ChoiceQuestion;
 
 class ChangeEnv extends Command
@@ -51,7 +53,12 @@ class ChangeEnv extends Command
         $content = preg_replace("/\r/", PHP_EOL, $content);
 
         # 替换配置
-        $msg = [];
+        $result    = [];
+        $envColors = [
+            'local' => '',
+            'dev'   => 'comment',
+            'prod'  => 'info',
+        ];
         foreach ($configNames as $name) {
             $inputEnv  = $argument ?: $options[$name];
             $nowConfig = $this->config[$name][$inputEnv];
@@ -61,13 +68,20 @@ class ChangeEnv extends Command
                 $replacement = $key . '=' . $value;
                 $content     = preg_replace($pattern, $replacement, $content);
             }
-            $msg[] = "{$name}:{$inputEnv}";
+            $color    = $envColors[$inputEnv];
+            $result[] = [$name, $color ? "<{$color}>{$inputEnv}</{$color}>" : $inputEnv];
         }
 
         #替换源文件
         file_put_contents($file, $content);
 
-        $this->info(implode(PHP_EOL, $msg));
+
+        #---- output -----
+        $this->tableRender(
+            ['配置', '环境'],
+            $result
+        );
+        #---- output -----
         return true;
     }
 
@@ -105,5 +119,27 @@ class ChangeEnv extends Command
     public function info($msg)
     {
         $this->output->info($msg);
+    }
+
+    /**
+     * 输出表格
+     * @param array $headers
+     * @param $rows
+     * @param string $tableStyle
+     * @return string
+     */
+    public function tableRender(array $headers, $rows, string $tableStyle = 'default'): string
+    {
+        $table = new Table();
+
+        if ($rows instanceof Arrayable) {
+            $rows = $rows->toArray();
+        }
+
+        $table->setHeader($headers);
+        $table->setRows($rows);
+        $table->setStyle($tableStyle);
+
+        return $this->table($table);
     }
 }
