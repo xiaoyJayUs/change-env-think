@@ -15,7 +15,14 @@ use think\console\output\question\Choice as ChoiceQuestion;
 class ChangeEnv extends Command
 {
 
-    /** @var array $config */
+    /**
+     * @var array $config
+     */
+    protected $envs = ['local', 'dev', 'prod'];
+
+    /**
+     * @var array $config
+     */
     protected $config = [];
 
     /**
@@ -23,28 +30,38 @@ class ChangeEnv extends Command
      */
     protected function configure()
     {
-        $configNames = array_keys($this->config());
+        $configNames = $this->configKeys();
+        $envsStr     = implode('/', $this->envs);
         $this->setName("xy:change-env")
             ->setDescription('开发环境切换')
             ->addArgument('env-all', InputArgument::OPTIONAL, '替换所有配置环境')
             ->addOption('quick', 'Q', InputOption::VALUE_NONE, '快捷模式');
         foreach ($configNames as $name) {
-            $this->addOption($name, null, InputOption::VALUE_OPTIONAL, 'local/dev/prod', 'local');
+            $this->addOption($name, null, InputOption::VALUE_OPTIONAL, $envsStr, 'local');
         }
     }
 
     public function handle(): bool
     {
         $this->config = $this->config();
-        $configNames  = array_keys($this->config);
+        $configNames  = $this->configKeys();
         $argument     = $this->input->getArgument('env-all');
         $options      = $this->input->getOptions();
         # 快速模式
         if ($options['quick']) {
-            $askConfigNames = $this->askQuestion((new ChoiceQuestion('需要替换的【配置】', $configNames))->setMultiselect(true));
-            $askEnv         = $this->askQuestion((new ChoiceQuestion('需要替换的【环境】', ['local', 'dev', 'prod'])));
-            foreach ($askConfigNames as $name) {
-                $options[$name] = $askEnv;
+            $inputAskConfigNames = $configNames;
+            array_unshift($inputAskConfigNames, 'close');
+            while (!empty($inputAskConfigNames)) {
+                $askConfigNames = $this->askQuestion((new ChoiceQuestion('需要替换的【配置】', $inputAskConfigNames, 0))->setMultiselect(true));
+                if (in_array('close', $askConfigNames)) {
+                    break;
+                }
+                $askEnv = $this->askQuestion((new ChoiceQuestion('需要替换的【环境】', $this->envs, 0)));
+
+                foreach ($askConfigNames as $name) {
+                    unset($inputAskConfigNames[array_search($name, $inputAskConfigNames)]);
+                    $options[$name] = $askEnv;
+                }
             }
         }
         # 获取配置文件
@@ -92,6 +109,15 @@ class ChangeEnv extends Command
     public function config(): array
     {
         return config('change-env') ?: [];
+    }
+
+    /**
+     * 获取配置-所有配置
+     * @return array
+     */
+    public function configKeys(): array
+    {
+        return array_keys($this->config());
     }
 
     /**
